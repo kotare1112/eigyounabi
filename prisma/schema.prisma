@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite は enum をサポートしないため、Role / EventCategory / LeadStatus /
+// ActionType はいずれも String で保持し、アプリ側（zod）で値を制約する。
+// 有効な値は src/lib/tags.ts, src/lib/actionResults.ts, src/lib/auth.ts を参照。
+
+model Tenant {
+  id         String      @id @default(cuid())
+  name       String
+  createdAt  DateTime    @default(now())
+  users      User[]
+  products   Product[]
+  leadScores LeadScore[]
+  actions    Action[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("SALES") // SALES | MANAGER | ADMIN
+  createdAt    DateTime @default(now())
+
+  leadScores LeadScore[] @relation("AssignedUser")
+  actions    Action[]
+}
+
+model Tag {
+  id       String       @id @default(cuid())
+  code     String       @unique
+  label    String
+  products ProductTag[]
+}
+
+model Product {
+  id                String   @id @default(cuid())
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+  name              String
+  category          String
+  targetProfile     String
+  targetIndustries  String? // カンマ区切りの想定業種
+  targetEmployeeMin Int?
+  targetEmployeeMax Int?
+  referenceCases    String?
+  priceRangeMin     Int?
+  priceRangeMax     Int?
+  priority          Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tags       ProductTag[]
+  leadScores LeadScore[]
+}
+
+model ProductTag {
+  productId String
+  tagId     String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([productId, tagId])
+}
+
+model Company {
+  id            String   @id @default(cuid())
+  name          String
+  industry      String
+  employeeCount Int?
+  prefecture    String?
+  capitalManYen Int?
+  createdAt     DateTime @default(now())
+
+  events     Event[]
+  leadScores LeadScore[]
+  actions    Action[]
+}
+
+model Event {
+  id         String   @id @default(cuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category   String // EQUIPMENT_INVESTMENT | HIRING_EXPANSION | FUNDING_PERFORMANCE | ORG_CHANGE | OTHER_EVENT
+  title      String
+  summary    String
+  sourceName String
+  sourceUrl  String?
+  occurredAt DateTime
+  detectedAt DateTime @default(now())
+}
+
+model LeadScore {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id])
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  score          Float
+  freshnessScore Float
+  matchScore     Float
+  profileScore   Float
+  historyScore   Float
+  reason         String
+  status         String   @default("NEW") // NEW | CONTACTED | IN_PROGRESS | WON | LOST | EXCLUDED
+  assignedUserId String?
+  assignedUser   User?    @relation("AssignedUser", fields: [assignedUserId], references: [id])
+  calculatedAt   DateTime @default(now())
+
+  proposal Proposal?
+  actions  Action[]
+
+  @@unique([tenantId, companyId, productId])
+}
+
+model Proposal {
+  id              String    @id @default(cuid())
+  leadScoreId     String    @unique
+  leadScore       LeadScore @relation(fields: [leadScoreId], references: [id], onDelete: Cascade)
+  openingLine     String
+  proposalSummary String
+  emailDraft      String
+  generatedAt     DateTime  @default(now())
+  editedByUser    Boolean   @default(false)
+}
+
+model Action {
+  id          String     @id @default(cuid())
+  tenantId    String
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  companyId   String
+  company     Company    @relation(fields: [companyId], references: [id])
+  leadScoreId String?
+  leadScore   LeadScore? @relation(fields: [leadScoreId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  actionType  String // CALL | EMAIL | MEETING | NOTE
+  result      String?
+  note        String?
+  actedAt     DateTime   @default(now())
+}

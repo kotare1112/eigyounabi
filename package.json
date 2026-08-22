@@ -1,0 +1,43 @@
+{
+  "name": "eigyou-navi",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "detect:run": "tsx scripts/run-detection.ts",
+    "leads:recalc": "tsx scripts/recalc-leads.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "5.19.1",
+    "bcryptjs": "2.4.3",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zod": "3.23.8"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "2.4.6",
+    "@types/node": "20.14.15",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "autoprefixer": "10.4.19",
+    "esbuild": "0.25.0",
+    "postcss": "8.5.26",
+    "prisma": "5.19.1",
+    "tailwindcss": "3.4.9",
+    "tsx": "4.16.5",
+    "typescript": "5.5.4"
+  },
+  "overrides": {
+    "postcss": "8.5.26",
+    "esbuild": "0.25.0"
+  }
+}
