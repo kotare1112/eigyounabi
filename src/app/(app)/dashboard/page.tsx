@@ -45,19 +45,19 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-navy">ダッシュボード</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-slate-900">ダッシュボード</h1>
+          <p className="text-sm text-slate-500 mt-1">
             {user.name} さん、本日おすすめの営業先です。
           </p>
         </div>
         {isManager && <RunDetectionButton />}
       </div>
 
-      <div className="mt-6">
-        <h2 className="text-sm font-bold text-gray-500 mb-3">
-          明日電話すべき{top5.length}社
+      <div className="mt-2">
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
+          明日電話すべき {top5.length} 社
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           {top5.map((lead, i) => (
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
 
       {rest.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-sm font-bold text-gray-500 mb-3">その他の営業先候補</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">その他の営業先候補</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {rest.map((lead, i) => (
               <LeadCard
@@ -116,41 +116,43 @@ function LeadCard({
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-white bg-navy rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="text-xs font-bold text-white bg-indigo-600 rounded-full w-5 h-5 flex items-center justify-center shrink-0">
               {rank}
             </span>
-            <Link href={`/companies/${lead.company.id}`} className="font-bold text-navy hover:underline">
+            <Link href={`/companies/${lead.company.id}`} className="font-bold text-slate-900 hover:text-indigo-600 transition-colors">
               {lead.company.name}
             </Link>
-            <span className="text-xs bg-gray-100 rounded px-2 py-0.5 text-gray-600">
+            <span className="badge badge-gray">
               {STATUS_LABEL[lead.status]}
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             {lead.company.industry}
             {lead.company.employeeCount ? ` ・ 従業員${lead.company.employeeCount}名` : ""}
             {lead.company.prefecture ? ` ・ ${lead.company.prefecture}` : ""}
           </p>
         </div>
-        <div className="text-right">
-          <div className="text-lg font-bold text-teal">{Math.round(lead.score)}</div>
-          <div className="text-[10px] text-gray-400">優先度スコア</div>
+        <div className="text-right shrink-0">
+          <div className="text-xl font-bold text-teal">{Math.round(lead.score)}</div>
+          <div className="text-[10px] text-slate-400">優先度スコア</div>
         </div>
       </div>
 
-      <p className="text-sm text-gray-700 mt-3">{lead.reason}</p>
-      <p className="text-xs text-gray-500 mt-1">対象商品: {lead.product.name}</p>
+      <p className="text-sm text-slate-600 mt-3 leading-relaxed">{lead.reason}</p>
+      <p className="text-xs text-slate-400 mt-1">
+        <span className="badge badge-indigo">{lead.product.name}</span>
+      </p>
 
       {!compact && lead.proposal && (
-        <div className="mt-3 bg-gray-50 rounded p-3 text-sm">
-          <p className="font-semibold text-gray-600 text-xs mb-1">最初の一言</p>
-          <p className="text-gray-800">{lead.proposal.openingLine}</p>
+        <div className="mt-3 bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm">
+          <p className="font-semibold text-indigo-600 text-xs mb-1">最初の一言</p>
+          <p className="text-slate-700">{lead.proposal.openingLine}</p>
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-4">
-        <Link href={`/companies/${lead.company.id}`} className="text-sm text-navy underline">
-          詳細・提案内容を見る
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+        <Link href={`/companies/${lead.company.id}`} className="text-sm text-indigo-600 font-medium hover:underline">
+          詳細・提案内容を見る →
         </Link>
         <div className="flex items-center gap-2">
           {isManager && (
