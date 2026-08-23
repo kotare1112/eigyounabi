@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import LogoutButton from "@/components/LogoutButton";
+import SidebarNav from "@/components/SidebarNav";
+import { LogOut } from "lucide-react";
 
 const ROLE_LABEL: Record<string, string> = {
   SALES: "営業担当者",
@@ -17,39 +18,27 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const isManager = user.role === "MANAGER" || user.role === "ADMIN";
 
-  const navItems = [
-    { href: "/dashboard", label: "ダッシュボード" },
-    { href: "/products", label: "商品管理" },
-    ...(isManager ? [{ href: "/team", label: "チーム管理" }] : []),
-    { href: "/reports", label: "レポート" },
-    { href: "/settings", label: "設定" },
-  ];
-
   return (
-    <div className="min-h-screen">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-lg font-bold text-navy">
-              営業ナビ
-            </Link>
-            <nav className="flex gap-4 text-sm">
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href} className="text-gray-600 hover:text-navy">
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-gray-500">
-              {user.tenant.name} ・ {user.name}（{ROLE_LABEL[user.role]}）
-            </span>
-            <LogoutButton />
-          </div>
+    <div className="flex min-h-screen">
+      {/* ダークサイドバー */}
+      <aside className="w-56 bg-sidebar flex flex-col shrink-0 fixed inset-y-0 left-0 z-30">
+        <SidebarNav
+          isManager={isManager}
+          userName={user.name}
+          tenantName={user.tenant.name}
+          roleLabel={ROLE_LABEL[user.role]}
+        />
+        <div className="px-3 pb-4">
+          <LogoutButton />
         </div>
-      </header>
-      <main className="max-w-6xl mx-auto px-4 py-8">{children}</main>
+      </aside>
+
+      {/* メインコンテンツ */}
+      <div className="flex-1 ml-56 min-h-screen flex flex-col">
+        <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
