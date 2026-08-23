@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import RunDetectionButton from "@/components/RunDetectionButton";
 import AssignSelect from "@/components/AssignSelect";
 import ExcludeLeadButton from "@/components/ExcludeLeadButton";
+import CollapsibleSection from "@/components/CollapsibleSection";
 
 const STATUS_LABEL: Record<string, string> = {
   NEW: "未接触",
@@ -56,42 +57,43 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-2">
-        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-          明日電話すべき {top5.length} 社
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          {top5.map((lead, i) => (
-            <LeadCard
-              key={lead.id}
-              rank={i + 1}
-              lead={lead}
-              isManager={isManager}
-              teamMembers={teamMembers}
-            />
-          ))}
-        </div>
-        {top5.length === 0 && (
-          <div className="card text-sm text-gray-500">
-            現在おすすめできる営業先がありません。マネージャーに変化検知の実行を依頼してください。
-          </div>
-        )}
+        <CollapsibleSection title={`明日電話すべき ${top5.length} 社`}>
+          {top5.length === 0 ? (
+            <div className="card text-sm text-slate-500">
+              現在おすすめできる営業先がありません。マネージャーに変化検知の実行を依頼してください。
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {top5.map((lead, i) => (
+                <LeadCard
+                  key={lead.id}
+                  rank={i + 1}
+                  lead={lead}
+                  isManager={isManager}
+                  teamMembers={teamMembers}
+                />
+              ))}
+            </div>
+          )}
+        </CollapsibleSection>
       </div>
 
       {rest.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">その他の営業先候補</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {rest.map((lead, i) => (
-              <LeadCard
-                key={lead.id}
-                rank={i + 6}
-                lead={lead}
-                isManager={isManager}
-                teamMembers={teamMembers}
-                compact
-              />
-            ))}
-          </div>
+          <CollapsibleSection title="その他の営業先候補">
+            <div className="grid gap-4 md:grid-cols-2">
+              {rest.map((lead, i) => (
+                <LeadCard
+                  key={lead.id}
+                  rank={i + 6}
+                  lead={lead}
+                  isManager={isManager}
+                  teamMembers={teamMembers}
+                  compact
+                />
+              ))}
+            </div>
+          </CollapsibleSection>
         </div>
       )}
     </div>

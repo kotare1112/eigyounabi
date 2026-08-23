@@ -15,10 +15,11 @@ model Tenant {
   id         String      @id @default(cuid())
   name       String
   createdAt  DateTime    @default(now())
-  users      User[]
-  products   Product[]
-  leadScores LeadScore[]
-  actions    Action[]
+  users           User[]
+  products        Product[]
+  leadScores      LeadScore[]
+  actions         Action[]
+  desiredProducts DesiredProduct[]
 }
 
 model User {
@@ -31,8 +32,9 @@ model User {
   role         String   @default("SALES") // SALES | MANAGER | ADMIN
   createdAt    DateTime @default(now())
 
-  leadScores LeadScore[] @relation("AssignedUser")
-  actions    Action[]
+  leadScores      LeadScore[]      @relation("AssignedUser")
+  actions         Action[]
+  desiredProducts DesiredProduct[]
 }
 
 model Tag {
@@ -133,6 +135,18 @@ model Proposal {
   emailDraft      String
   generatedAt     DateTime  @default(now())
   editedByUser    Boolean   @default(false)
+}
+
+// 自社が導入したい・欲しい商品・サービスのウィッシュリスト（テナント全体で共有）
+model DesiredProduct {
+  id              String   @id @default(cuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  name            String
+  memo            String?
+  createdByUserId String?
+  createdByUser   User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
 }
 
 model Action {

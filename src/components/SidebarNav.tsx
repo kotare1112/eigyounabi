@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
+  Star,
   Users,
   BarChart2,
   Settings,
@@ -19,7 +20,8 @@ type NavItem = {
 
 const ALL_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "ダッシュボード", Icon: LayoutDashboard },
-  { href: "/products", label: "商品管理", Icon: Package },
+  { href: "/products", label: "自社製品", Icon: Package },
+  { href: "/preferred-products", label: "希望する商品", Icon: Star },
   { href: "/team", label: "チーム管理", Icon: Users },
   { href: "/reports", label: "レポート", Icon: BarChart2 },
   { href: "/settings", label: "設定", Icon: Settings },

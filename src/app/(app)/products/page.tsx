@@ -18,7 +18,7 @@ export default async function ProductsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-navy">商品管理</h1>
+          <h1 className="text-xl font-bold text-navy">自社製品</h1>
           <p className="text-sm text-gray-500">
             STEP1: 商品・想定顧客像・解決できる課題を登録します。
           </p>
