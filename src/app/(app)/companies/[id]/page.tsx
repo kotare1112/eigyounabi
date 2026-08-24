@@ -5,6 +5,7 @@ import { getEventCategoryLabel } from "@/lib/tags";
 import { ACTION_TYPE_LABEL } from "@/lib/actionResults";
 import ProposalEditor from "@/components/ProposalEditor";
 import ActionForm from "@/components/ActionForm";
+import CompanyNeedsForm from "@/components/CompanyNeedsForm";
 
 const STATUS_LABEL: Record<string, string> = {
   NEW: "未接触",
@@ -23,6 +24,7 @@ export default async function CompanyDetailPage({ params }: { params: { id: stri
     where: { id: params.id },
     include: {
       events: { orderBy: { occurredAt: "desc" } },
+      needTags: { include: { tag: true } },
     },
   });
   if (!company) notFound();
@@ -53,6 +55,19 @@ export default async function CompanyDetailPage({ params }: { params: { id: stri
           {company.capitalManYen ? ` ・ 資本金${company.capitalManYen}万円` : ""}
         </p>
       </div>
+
+      <section>
+        <h2 className="font-bold text-navy mb-3">欲しい商品・ニーズ</h2>
+        <p className="text-sm text-gray-500 mb-3">
+          この企業が欲しがっている商品・解決したい課題を登録すると、自社製品とのマッチ度に反映されます。
+        </p>
+        <div className="card">
+          <CompanyNeedsForm
+            companyId={company.id}
+            initialTagCodes={company.needTags.map((nt) => nt.tag.code)}
+          />
+        </div>
+      </section>
 
       <section>
         <h2 className="font-bold text-navy mb-3">営業先としての優先度・提案内容</h2>
