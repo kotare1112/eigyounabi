@@ -38,11 +38,16 @@ function computeFreshness(event: Event | null, now: Date): number {
   return Math.max(0, Math.min(100, score));
 }
 
-function computeMatch(event: Event | null, productTagCodes: string[]): number {
-  if (!event) return 0;
+function computeMatch(
+  event: Event | null,
+  companyNeedTagCodes: string[],
+  productTagCodes: string[]
+): number {
   if (productTagCodes.length === 0) return 20; // 課題タグ未設定の商品は中立的な低めの一致度
-  const impliedTags = getEventCategoryTags(event.category);
-  const overlap = impliedTags.filter((t) => productTagCodes.includes(t)).length;
+  const impliedTags = event ? getEventCategoryTags(event.category) : [];
+  const relevantTags = Array.from(new Set([...impliedTags, ...companyNeedTagCodes]));
+  if (relevantTags.length === 0) return 0;
+  const overlap = relevantTags.filter((t) => productTagCodes.includes(t)).length;
   if (overlap === 0) return 10;
   return Math.min(100, (overlap / productTagCodes.length) * 100 + overlap * 10);
 }
@@ -107,9 +112,13 @@ function buildReason(
   company: Company,
   product: Product,
   event: Event | null,
-  matchedTagLabels: string[]
+  matchedTagLabels: string[],
+  hasCompanyNeeds: boolean
 ): string {
   if (!event) {
+    if (matchedTagLabels.length > 0) {
+      return `${company.name}は「${matchedTagLabels.join("」「")}」のニーズを抱えており、${product.name}が解決できる可能性があります。`;
+    }
     return `${company.name}に関する変化イベントは未検知のため、参考情報としての提案です。`;
   }
   const categoryLabel = getEventCategoryLabel(event.category);
@@ -117,7 +126,8 @@ function buildReason(
     matchedTagLabels.length > 0
       ? `「${matchedTagLabels.join("」「")}」の課題を解決できる可能性があります。`
       : "貴社商品との直接的な関連は限定的ですが、タイミングとして有望です。";
-  return `${company.name}は${formatDate(event.occurredAt)}に${categoryLabel}（${event.title}）を実施しており、${product.name}が${tagPart}`;
+  const needsNote = hasCompanyNeeds ? "登録済みのニーズ情報も踏まえると、" : "";
+  return `${company.name}は${formatDate(event.occurredAt)}に${categoryLabel}（${event.title}）を実施しており、${needsNote}${product.name}が${tagPart}`;
 }
 
 function formatDate(d: Date): string {
@@ -130,11 +140,12 @@ export function scoreCompanyForProduct(
   product: Product,
   productTagCodes: string[],
   historySignal: HistorySignal,
+  companyNeedTagCodes: string[] = [],
   now: Date = new Date()
 ): ScoreBreakdown {
   const bestEvent = pickBestEvent(events, productTagCodes);
   const freshnessScore = computeFreshness(bestEvent, now);
-  const matchScore = computeMatch(bestEvent, productTagCodes);
+  const matchScore = computeMatch(bestEvent, companyNeedTagCodes, productTagCodes);
   const profileScore = computeProfile(company, product);
   const historyScore = computeHistoryScore(historySignal);
 
@@ -144,11 +155,9 @@ export function scoreCompanyForProduct(
     profileScore * SCORE_WEIGHTS.profile +
     historyScore * SCORE_WEIGHTS.history;
 
-  const matchedTagLabels = bestEvent
-    ? getEventCategoryTags(bestEvent.category)
-        .filter((t) => productTagCodes.includes(t))
-        .map(tagLabel)
-    : [];
+  const impliedTags = bestEvent ? getEventCategoryTags(bestEvent.category) : [];
+  const relevantTags = Array.from(new Set([...impliedTags, ...companyNeedTagCodes]));
+  const matchedTagLabels = relevantTags.filter((t) => productTagCodes.includes(t)).map(tagLabel);
 
   return {
     score: Math.round(score * 10) / 10,
@@ -156,7 +165,7 @@ export function scoreCompanyForProduct(
     matchScore: Math.round(matchScore),
     profileScore: Math.round(profileScore),
     historyScore: Math.round(historyScore),
-    reason: buildReason(company, product, bestEvent, matchedTagLabels),
+    reason: buildReason(company, product, bestEvent, matchedTagLabels, companyNeedTagCodes.length > 0),
     bestEvent,
   };
 }

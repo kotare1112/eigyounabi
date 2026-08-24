@@ -12,14 +12,15 @@ datasource db {
 // 有効な値は src/lib/tags.ts, src/lib/actionResults.ts, src/lib/auth.ts を参照。
 
 model Tenant {
-  id         String      @id @default(cuid())
-  name       String
-  createdAt  DateTime    @default(now())
+  id              String           @id @default(cuid())
+  name            String
+  createdAt       DateTime         @default(now())
   users           User[]
   products        Product[]
   leadScores      LeadScore[]
   actions         Action[]
   desiredProducts DesiredProduct[]
+  messages        Message[]
 }
 
 model User {
@@ -35,13 +36,15 @@ model User {
   leadScores      LeadScore[]      @relation("AssignedUser")
   actions         Action[]
   desiredProducts DesiredProduct[]
+  messages        Message[]
 }
 
 model Tag {
-  id       String       @id @default(cuid())
-  code     String       @unique
+  id       String           @id @default(cuid())
+  code     String           @unique
   label    String
   products ProductTag[]
+  needs    CompanyNeedTag[]
 }
 
 model Product {
@@ -86,6 +89,19 @@ model Company {
   events     Event[]
   leadScores LeadScore[]
   actions    Action[]
+  needTags   CompanyNeedTag[]
+  messages   Message[]
+}
+
+// 他社（見込み顧客企業）が欲しがっている商品・サービスの課題タグ（営業担当が登録）。
+// 自社製品の課題タグ（ProductTag）と突き合わせてマッチ度スコアに反映する。
+model CompanyNeedTag {
+  companyId String
+  tagId     String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([companyId, tagId])
 }
 
 model Event {
@@ -122,6 +138,7 @@ model LeadScore {
 
   proposal Proposal?
   actions  Action[]
+  messages Message[]
 
   @@unique([tenantId, companyId, productId])
 }
@@ -147,6 +164,22 @@ model DesiredProduct {
   createdByUserId String?
   createdByUser   User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
   createdAt       DateTime @default(now())
+}
+
+// 企業とのDM感覚での商談メッセージ。sender は "SALES"（営業担当）| "COMPANY"（企業側の返信シミュレーション）。
+model Message {
+  id           String     @id @default(cuid())
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id])
+  companyId    String
+  company      Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  leadScoreId  String?
+  leadScore    LeadScore? @relation(fields: [leadScoreId], references: [id], onDelete: SetNull)
+  sender       String // SALES | COMPANY
+  senderUserId String?
+  senderUser   User?      @relation(fields: [senderUserId], references: [id], onDelete: SetNull)
+  body         String
+  createdAt    DateTime   @default(now())
 }
 
 model Action {

@@ -26,7 +26,9 @@ export async function recalcLeadsForTenant(tenantId: string): Promise<{ updated:
     where: { tenantId },
     include: { tags: { include: { tag: true } } },
   });
-  const companies = await prisma.company.findMany({ include: { events: true } });
+  const companies = await prisma.company.findMany({
+    include: { events: true, needTags: { include: { tag: true } } },
+  });
 
   let updated = 0;
 
@@ -35,12 +37,14 @@ export async function recalcLeadsForTenant(tenantId: string): Promise<{ updated:
 
     for (const company of companies) {
       const historySignal = await getHistorySignal(tenantId, company.id);
+      const companyNeedTagCodes = company.needTags.map((nt) => nt.tag.code);
       const breakdown = scoreCompanyForProduct(
         company,
         company.events,
         product,
         productTagCodes,
-        historySignal
+        historySignal,
+        companyNeedTagCodes
       );
 
       const leadScore = await prisma.leadScore.upsert({

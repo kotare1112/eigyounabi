@@ -32,7 +32,7 @@ export default async function DashboardPage() {
       tenantId: user.tenantId,
       status: { notIn: ["WON", "LOST", "EXCLUDED"] },
     },
-    include: { company: true, product: true, proposal: true, assignedUser: true },
+    include: { company: true, product: true, assignedUser: true },
     orderBy: { score: "desc" },
     take: 30,
   });
@@ -89,7 +89,6 @@ export default async function DashboardPage() {
                   lead={lead}
                   isManager={isManager}
                   teamMembers={teamMembers}
-                  compact
                 />
               ))}
             </div>
@@ -105,13 +104,11 @@ function LeadCard({
   lead,
   isManager,
   teamMembers,
-  compact,
 }: {
   rank: number;
   lead: any;
   isManager: boolean;
   teamMembers: { id: string; name: string }[];
-  compact?: boolean;
 }) {
   return (
     <div className="card">
@@ -145,22 +142,21 @@ function LeadCard({
         <span className="badge badge-indigo">{lead.product.name}</span>
       </p>
 
-      {!compact && lead.proposal && (
-        <div className="mt-3 bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm">
-          <p className="font-semibold text-indigo-600 text-xs mb-1">最初の一言</p>
-          <p className="text-slate-700">{lead.proposal.openingLine}</p>
-        </div>
-      )}
-
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
         <Link href={`/companies/${lead.company.id}`} className="text-sm text-indigo-600 font-medium hover:underline">
-          詳細・提案内容を見る →
+          詳細を見る →
         </Link>
         <div className="flex items-center gap-2">
           {isManager && (
             <AssignSelect leadId={lead.id} currentUserId={lead.assignedUserId} members={teamMembers} />
           )}
           <ExcludeLeadButton leadId={lead.id} />
+          <Link
+            href={`/messages?companyId=${lead.company.id}&leadScoreId=${lead.id}`}
+            className="btn-primary text-sm"
+          >
+            この企業に提案する
+          </Link>
         </div>
       </div>
     </div>
